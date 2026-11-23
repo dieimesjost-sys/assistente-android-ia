@@ -22,10 +22,33 @@ async function iniciarEscutaVoz(onTextoParcial, onTextoFinal, onErro) {
       }
     }
 
-    SpeechRecognition.removeAllListeners();
-    SpeechRecognition.addListener("partialResults", (data) => {
-      if (data.matches && data.matches.length > 0) {
-        onTextoParcial?.(data.matches[0]);
+    let ultimoTexto = "";
+    let finalizado = false;
+
+    const concluir = async () => {
+      if (finalizado) return;
+      finalizado = true;
+      await SpeechRecognition.removeAllListeners();
+      if (ultimoTexto.trim()) {
+        onTextoFinal?.(ultimoTexto.trim());
+      } else {
+        onErro?.("Nenhuma fala detetada.");
+      }
+    };
+
+    await SpeechRecognition.removeAllListeners();
+
+    await SpeechRecognition.addListener("partialResults", (data) => {
+      const texto = data?.matches?.[0];
+      if (texto) {
+        ultimoTexto = texto;
+        onTextoParcial?.(texto);
+      }
+    });
+
+    await SpeechRecognition.addListener("listeningState", (state) => {
+      if (state?.status === "stopped") {
+        concluir();
       }
     });
 
@@ -37,9 +60,10 @@ async function iniciarEscutaVoz(onTextoParcial, onTextoFinal, onErro) {
       popup: false
     });
 
-    if (resultado.matches && resultado.matches.length > 0) {
-      const fraseFinal = resultado.matches[0];
-      onTextoFinal?.(fraseFinal);
+    const textoDireto = resultado?.matches?.[0];
+    if (textoDireto) {
+      ultimoTexto = textoDireto;
+      await concluir();
     }
   } catch (erro) {
     onErro?.(erro?.message || "Erro ao capturar áudio.");
@@ -48,6 +72,8 @@ async function iniciarEscutaVoz(onTextoParcial, onTextoFinal, onErro) {
 
 async function pararEscutaVoz() {
   if (SpeechRecognition) {
-    await SpeechRecognition.stop();
+    try {
+      await SpeechRecognition.stop();
+    } catch (_) {}
   }
 }
