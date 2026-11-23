@@ -1,0 +1,14 @@
+{
+  "name": "assistente-android-ia",
+  "version": "0.1.0",
+  "description": "Assistente virtual Android com comandos personalizados, voz pt-BR e integracao Gemini Function Calling",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Web assets ready in www/'"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor-community/speech-recognition": "^6.0.0"
+  }
+}

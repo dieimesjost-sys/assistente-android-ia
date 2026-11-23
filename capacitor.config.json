@@ -1,0 +1,9 @@
+{
+  "appId": "com.dieimes.assistenteia",
+  "appName": "Assistente IA",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
+}

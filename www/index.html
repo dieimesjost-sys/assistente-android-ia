@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Assistente Android IA</title>
+  <style>
+    :root {
+      --bg-app: #0b0f17;
+      --bg-surface: #131a26;
+      --bg-surface-2: #1b2434;
+      --bg-user: #1e3a5f;
+      --bg-bot: #161f2e;
+      --border: #28354b;
+      --text-main: #eef2f7;
+      --text-muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 720px;
+      margin: 0 auto;
+      background-color: var(--bg-app);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .topbar-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+      flex-shrink: 0;
+    }
+
+    .status-dot.offline {
+      background-color: var(--danger);
+    }
+
+    #status-voz {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .icon-btn {
+      background-color: var(--bg-surface-2);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .icon-btn:active {
+      background-color: #243046;
+    }
+
+    .config-drawer {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px 16px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .config-drawer.open {
+      display: flex;
+    }
+
+    .config-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .config-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-dark {
+      flex: 1;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 11px 13px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .input-dark:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .config-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      max-width: 86%;
+      padding: 11px 14px;
+      border-radius: var(--radius-lg);
+      font-size: 14.5px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background-color: var(--bg-user);
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+      background-color: var(--bg-bot);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.system {
+      align-self: center;
+      max-width: 95%;
+      background-color: var(--bg-surface);
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      font-size: 12.5px;
+      text-align: center;
+      padding: 8px 12px;
+    }
+
+    .msg-meta {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .composer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      background-color: var(--bg-surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .composer-input {
+      flex: 1;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 11px 16px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .composer-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-mic,
+    .btn-send {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.12s ease, background-color 0.15s ease;
+    }
+
+    .btn-mic {
+      background-color: var(--bg-surface-2);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-mic.listening {
+      background-color: var(--danger);
+      color: #ffffff;
+      border-color: var(--danger);
+      animation: pulse 1.2s infinite;
+    }
+
+    .btn-send {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-send:active,
+    .btn-mic:active {
+      transform: scale(0.94);
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+      70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          <span id="status-dot" class="status-dot offline"></span>
+          <span>Assistente IA</span>
+        </div>
+        <div id="status-voz">Pronto • Configure a chave API se necessário</div>
+      </div>
+      <button id="btn-toggle-config" class="icon-btn" type="button" aria-label="Configurações da API">
+        <span>⚙️ API</span>
+      </button>
+    </header>
+
+    <section id="config-drawer" class="config-drawer" aria-label="Configuração da Chave API">
+      <label for="input-api-key" class="config-label">Chave da API do Gemini</label>
+      <div class="config-row">
+        <input
+          id="input-api-key"
+          type="password"
+          class="input-dark"
+          placeholder="Cole sua chave AIza..."
+          autocomplete="off"
+        />
+        <button id="btn-salvar-key" class="btn-primary" type="button">Salvar</button>
+      </div>
+      <p class="config-hint">
+        Armazenada apenas no armazenamento local (<code>localStorage</code>) deste aparelho.
+      </p>
+    </section>
+
+    <main id="historico" class="chat-history" aria-live="polite">
+      <div class="msg system">
+        Fale ou digite um comando para acionar automações locais ou salvar notas rápidas.
+      </div>
+    </main>
+
+    <form id="form-comando" class="composer">
+      <button id="btn-microfone" class="btn-mic" type="button" title="Falar comando" aria-label="Falar comando">
+        🎤
+      </button>
+      <input
+        id="input-comando"
+        type="text"
+        class="composer-input"
+        placeholder="Digite ou fale um comando..."
+        autocomplete="off"
+      />
+      <button id="btn-enviar" class="btn-send" type="submit" title="Enviar comando" aria-label="Enviar comando">
+        ➤
+      </button>
+    </form>
+  </div>
+
+  <script src="assistente-ia.js"></script>
+  <script src="nativo.js"></script>
+  <script>
+    const STORAGE_KEY = "gemini_api_key";
+
+    const elHistorico = document.getElementById("historico");
+    const elForm = document.getElementById("form-comando");
+    const elInput = document.getElementById("input-comando");
+    const elBtnMic = document.getElementById("btn-microfone");
+    const elStatusVoz = document.getElementById("status-voz");
+    const elStatusDot = document.getElementById("status-dot");
+    const elDrawer = document.getElementById("config-drawer");
+    const elBtnToggleConfig = document.getElementById("btn-toggle-config");
+    const elInputKey = document.getElementById("input-api-key");
+    const elBtnSalvarKey = document.getElementById("btn-salvar-key");
+
+    let historicoConversa = [];
+    let ouvindoAgora = false;
+
+    function horaAtual() {
+      return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function adicionarMensagem(texto, tipo = "bot") {
+      const div = document.createElement("div");
+      div.className = `msg ${tipo}`;
+      div.textContent = texto;
+
+      if (tipo === "user" || tipo === "bot") {
+        const meta = document.createElement("span");
+        meta.className = "msg-meta";
+        meta.textContent = horaAtual();
+        div.appendChild(meta);
+      }
+
+      elHistorico.appendChild(div);
+      elHistorico.scrollTop = elHistorico.scrollHeight;
+    }
+
+    function atualizarStatusChave() {
+      const chaveSalva = localStorage.getItem(STORAGE_KEY)?.trim();
+      if (chaveSalva) {
+        elStatusDot.classList.remove("offline");
+        elStatusVoz.textContent = "API configurada • Pronto para comandos";
+      } else {
+        elStatusDot.classList.add("offline");
+        elStatusVoz.textContent = "Chave API ausente • Toque em ⚙️ API";
+      }
+    }
+
+    const chaveInicial = localStorage.getItem(STORAGE_KEY) || "";
+    if (chaveInicial) {
+      elInputKey.value = chaveInicial;
+    }
+    atualizarStatusChave();
+
+    elBtnToggleConfig.addEventListener("click", () => {
+      elDrawer.classList.toggle("open");
+      if (elDrawer.classList.contains("open")) {
+        elInputKey.focus();
+      }
+    });
+
+    elBtnSalvarKey.addEventListener("click", () => {
+      const novaChave = elInputKey.value.trim();
+      if (!novaChave) {
+        localStorage.removeItem(STORAGE_KEY);
+        atualizarStatusChave();
+        adicionarMensagem("Chave da API removida.", "system");
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, novaChave);
+      elDrawer.classList.remove("open");
+      atualizarStatusChave();
+      adicionarMensagem("Chave da API salva localmente.", "system");
+    });
+
+    async function executarComandoTexto(texto) {
+      const limpo = texto.trim();
+      if (!limpo) return;
+
+      const apiKey = localStorage.getItem(STORAGE_KEY)?.trim();
+      if (!apiKey) {
+        elDrawer.classList.add("open");
+        adicionarMensagem("Configure sua chave da API do Gemini antes de enviar comandos.", "system");
+        return;
+      }
+
+      elInput.value = "";
+      adicionarMensagem(limpo, "user");
+      elStatusVoz.textContent = "Processando com Gemini...";
+
+      try {
+        if (typeof enviarComandoAoAssistente !== "function") {
+          throw new Error("Função enviarComandoAoAssistente não encontrada em assistente-ia.js");
+        }
+
+        const resultado = await enviarComandoAoAssistente(limpo, apiKey, historicoConversa);
+        historicoConversa = resultado.historicoAtualizado || historicoConversa;
+        adicionarMensagem(resultado.resposta, "bot");
+        atualizarStatusChave();
+      } catch (err) {
+        adicionarMensagem(`Erro: ${err.message}`, "system");
+        elStatusVoz.textContent = "Falha no processamento";
+      }
+    }
+
+    elForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      executarComandoTexto(elInput.value);
+    });
+
+    elBtnMic.addEventListener("click", async () => {
+      if (ouvindoAgora) {
+        ouvindoAgora = false;
+        elBtnMic.classList.remove("listening");
+        if (typeof pararEscutaVoz === "function") {
+          await pararEscutaVoz();
+        }
+        atualizarStatusChave();
+        return;
+      }
+
+      if (typeof iniciarEscutaVoz !== "function") {
+        adicionarMensagem("Função iniciarEscutaVoz não encontrada em nativo.js.", "system");
+        return;
+      }
+
+      ouvindoAgora = true;
+      elBtnMic.classList.add("listening");
+      elStatusVoz.textContent = "Ouvindo em pt-BR...";
+
+      await iniciarEscutaVoz(
+        (parcial) => {
+          elStatusVoz.textContent = `Ouvindo: "${parcial}"`;
+        },
+        async (fraseFinal) => {
+          ouvindoAgora = false;
+          elBtnMic.classList.remove("listening");
+          elInput.value = fraseFinal;
+          await executarComandoTexto(fraseFinal);
+        },
+        (msgErro) => {
+          ouvindoAgora = false;
+          elBtnMic.classList.remove("listening");
+          elStatusVoz.textContent = `Voz: ${msgErro}`;
+          adicionarMensagem(`Microfone: ${msgErro}`, "system");
+        }
+      );
+    });
+  </script>
+</body>
+</html>
