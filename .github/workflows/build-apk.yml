@@ -29,10 +29,14 @@ jobs:
 
       - name: Initialize Capacitor Android project if missing
         run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
+          CAP="./node_modules/.bin/cap"
+          if [ ! -x "$CAP" ]; then
+            CAP="npx --yes @capacitor/cli@6 cap"
           fi
-          npx cap sync android
+          if [ ! -d "android" ]; then
+            $CAP add android
+          fi
+          $CAP sync android
 
       - name: Configure permissions and cleartext traffic in AndroidManifest.xml
         run: |
