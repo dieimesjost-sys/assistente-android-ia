@@ -31,7 +31,7 @@ jobs:
         run: |
           CAP="./node_modules/.bin/cap"
           if [ ! -x "$CAP" ]; then
-            CAP="npx --yes @capacitor/cli@6 cap"
+            CAP="npx --yes @capacitor/cli@6"
           fi
           if [ ! -d "android" ]; then
             $CAP add android
